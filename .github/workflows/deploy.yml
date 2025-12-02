@@ -1,0 +1,60 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # Job 1 : Validation basique
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm install
+      
+      - name: Check Backend Syntax
+        working-directory: ./backend
+        run: node -c server.js
+      
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm install
+      
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+  # Job 2 : Sécurité
+  security:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Security Audit Backend
+        working-directory: ./backend
+        run: npm audit --audit-level=high || true
+      
+      - name: Security Audit Frontend
+        working-directory: ./frontend
+        run: npm audit --audit-level=high || true
+
+  # Job 3 : Notification
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [validate, security]
+    steps:
+      - name: Deploy Success
+        run: |
+          echo "✅ Pipeline validé"
+          echo "🚀 Render va déployer automatiquement"
