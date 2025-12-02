@@ -1,0 +1,65 @@
+services:
+  # Backend API
+  - type: web
+    name: exam1-backend-preprod
+    env: node
+    buildCommand: cd backend && npm install && npm start
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        fromDatabase:
+          name: 
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://exam1-frontend-preprod.onrender.com
+    healthCheckPath: /api/health
+    
+  # Frontend React
+  - type: web
+    name: exam1-frontend-preprod
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://exam1-backend-preprod.onrender.com
+    
+  # Microservice Notifications
+  - type: web
+    name: exam1-notifications-preprod
+    env: node
+    buildCommand: cd microservices/notifications && npm install
+    startCommand: cd microservices/notifications && npm start
+    envVars:
+      - key: PORT
+        value: 3001
+        
+  # Microservice Stock Management
+  - type: web
+    name: exam1-stock-preprod
+    env: node
+    buildCommand: cd microservices/stock-management && npm install
+    startCommand: cd microservices/stock-management && npm start
+    envVars:
+      - key: PORT
+        value: 3002
+        
+  # Gateway
+  - type: web
+    name: exam1-gateway-preprod
+    env: node
+    buildCommand: cd gateway && npm install
+    startCommand: cd gateway && npm start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: BACKEND_URL
+        value: https://exam1-backend-preprod.onrender.com
+      - key: NOTIFICATIONS_URL
+        value: https://exam1-notifications-preprod.onrender.com
+      - key: STOCK_URL
+        value: https://exam1-stock-preprod.onrender.com

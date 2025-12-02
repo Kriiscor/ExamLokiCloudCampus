@@ -2,14 +2,15 @@
 const axios = require('axios');
 const Order = require('../models/Order');
 const orderLog = require('debug')('orderRoutes:console')
+const logger = require('../utils/logger');
 
 
 exports.createOrder = async (req, res) => {
   //userLog(`user is ${JSON.stringify(req.user)}`)
-  console.log(`user is in createOrder ${JSON.stringify(req.user)}`)
+  logger.info(`user is in createOrder ${JSON.stringify(req.user)}`)
   //const { items, shippingAddress, paymentMethod } = req.body;
   const { items, shippingAddress, paymentMethod, shippingMethod, } = req.body;
-  console.log(`items are ${JSON.stringify(req.body)}`)
+  logger.info(`items are ${JSON.stringify(req.body)}`)
   //const { items } = req.body;
   let userId = req.user.userId;
   // let shippingAddress = {
@@ -32,7 +33,7 @@ exports.createOrder = async (req, res) => {
   try {
     // Logique pour préparer les détails de la commande
     const orderDetails = items.map(({ productId, quantity, price }) => {
-      console.log(`Produit ID : ${productId}, Quantité : ${quantity}, Price ${price}`);
+      logger.info(`Produit ID : ${productId}, Quantité : ${quantity}, Price ${price}`);
       return { productId, quantity, price };
     });
 
@@ -54,7 +55,7 @@ exports.createOrder = async (req, res) => {
     // Sauvegarder la commande dans la base de données
     const savedOrder = await newOrder.save();
 
-    console.log('Commande sauvegardée :', savedOrder);
+    logger.info('Commande sauvegardée :', savedOrder);
 
     // Appel au micro-service de notification
     try {
@@ -66,7 +67,7 @@ exports.createOrder = async (req, res) => {
           .join('\n')}`,
       });
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de la notification', error);
+      logger.error('Erreur lors de l\'envoi de la notification', error);
     }
 
     // Appel au micro-service de gestion des stocks
