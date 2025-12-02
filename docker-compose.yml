@@ -1,32 +1,57 @@
-version: '3'
+version: '3.8'
+
 services:
-  frontend:
-    build: ./frontend
+  mongodb:
+    image: mongo:7
+    container_name: exam1-mongodb
+    restart: always
     ports:
-      - '3000:3000'
-    depends_on:
-      - backend
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: exam1Db
+    networks:
+      - exam1-network
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: exam1-backend
+    restart: always
     ports:
-      - '5000:5000'
+      - "5000:5000"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/mydatabase
+      - PORT=5000
+      - MONGO_URI=mongodb://mongodb:27017/exam1Db
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_change_in_production}
+      - FRONTEND_URL=http://localhost:3000
+      - NODE_ENV=production
     depends_on:
-      - mongo
+      - mongodb
+    networks:
+      - exam1-network
 
-  mongo:
-    image: mongo
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: exam1-frontend
+    restart: always
     ports:
-      - '27018:27017'
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api
+    depends_on:
+      - backend
+    networks:
+      - exam1-network
 
-  notifications:
-    build: ./microservices/notifications
-    ports:
-      - '3001:3001'
+volumes:
+  mongodb_data:
+    driver: local
 
-  stock-management:
-    build: ./microservices/stock-management
-    ports:
-      - '3002:3002'
+networks:
+  exam1-network:
+    driver: bridge

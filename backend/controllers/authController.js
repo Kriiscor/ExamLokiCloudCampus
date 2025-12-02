@@ -9,21 +9,23 @@ const authLog = require('debug')('authRoutes:console')
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
-  authLog(`username is ${username} password is ${password}`);
 
 
   try {
     const user = await User.findOne({ username });
-    authLog(`user is ${JSON.stringify(user)}`)
     if (!user) return res.status(400).json({ message: 'Utilisateur non trouvé' });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Mot de passe incorrect' });
 
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    authLog(`token is ${token}`)
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 3600000 // 1 hour
+    });
 
-    res.json({ token, role: user.role, username: user.username });
+    res.json({ role: user.role, username: user.username });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur' });
   }
@@ -67,4 +69,12 @@ exports.register = async (req, res) => {
     console.error('Erreur lors de l\'inscription', error);
     res.status(500).json({ message: 'Une erreur est survenue.' });
   }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'strict'
+  });
+  res.json({ message: 'Déconnexion réussie' });
 };

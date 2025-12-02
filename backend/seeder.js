@@ -2,7 +2,8 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Product = require('./models/Product'); // Assurez-vous que le chemin est correct
-
+const User = require('./models/User'); // Assurez-vous que le chemin est correct
+const { enumRole } = require('./config/utils');
 dotenv.config();
 
 // Connexion à MongoDB
@@ -46,6 +47,13 @@ const products = [
     stock: 15,
   },
 ];
+const adminUser = {
+  username: 'admin',
+  email: 'admin@example.com',
+  password: 'admin9!',
+  role: enumRole.ADMIN
+};
+
 
 // Fonction pour insérer les produits
 const seedProducts = async () => {
@@ -64,5 +72,29 @@ const seedProducts = async () => {
   }
 };
 
+const seedAdminUser = async () => {
+  try {
+    // Supprimer l'utilisateur administrateur existant (optionnel)
+    await User.deleteOne({ username: 'admin' });
+
+    // Insérer l'utilisateur administrateur
+    await User.create(adminUser);
+
+    console.log('Utilisateur administrateur inséré avec succès !');
+    process.exit();
+  } catch (error) {
+    console.error('Erreur lors de l\'insertion de l\'utilisateur administrateur', error);
+    process.exit(1);
+  }
+};
 // Lancer le seed
-seedProducts();
+const seeds = async () => {
+  try {
+    await seedAdminUser();
+    await seedProducts();
+  } catch (error) {
+    console.error('Erreur lors de l\'insertion des données', error);
+    process.exit(1);
+  }
+};
+seeds();

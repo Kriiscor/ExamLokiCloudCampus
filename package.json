@@ -1,10 +1,21 @@
 {
   "scripts": {
-    "start:notifications": "nodemon microservices/notifications/index.js",
-    "start:stock-management": "nodemon microservices/stock-management/index.js",
-    "start:gateway": "nodemon gateway/server.js",
-    "start:backend": "nodemon backend/server.js",
+    "start:notifications": "node microservices/notifications/index.js",
+    "start:stock-management": "node microservices/stock-management/index.js",
+    "start:gateway": "node gateway/server.js",
+    "start:backend": "node backend/server.js",
+    "seed:backend": "node backend/seeder.js",
     "start:frontend": "npm --prefix frontend start",
-    "start:all": "npm-run-all --parallel start:notifications start:stock-management start:gateway start:backend start:frontend"
+    "start:all": "npm-run-all --parallel start:notifications start:stock-management start:gateway start:backend start:frontend",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up",
+    "docker:up:build": "docker-compose up --build",
+    "docker:down": "docker-compose down",
+    "docker:down:clean": "docker-compose down -v",
+    "docker:logs": "docker-compose logs -f",
+    "docker:seed": "docker-compose exec backend node seeder.js"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
   }
 }
